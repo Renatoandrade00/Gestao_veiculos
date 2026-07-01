@@ -1,0 +1,66 @@
+# ──────────────────────────────────────────
+# Dependencies
+# ──────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+
+# ──────────────────────────────────────────
+# Environment variables — NEVER commit .env
+# ──────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+backend/.env
+backend/.env.local
+frontend/.env
+frontend/.env.local
+
+# ──────────────────────────────────────────
+# Build outputs
+# ──────────────────────────────────────────
+dist/
+build/
+backend/dist/
+frontend/dist/
+
+# ──────────────────────────────────────────
+# Database (SQLite — dev only)
+# ──────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+backend/prisma/*.db
+
+# ──────────────────────────────────────────
+# Logs
+# ──────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ──────────────────────────────────────────
+# OS / Editor
+# ──────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ──────────────────────────────────────────
+# TypeScript cache
+# ──────────────────────────────────────────
+*.tsbuildinfo
+
+# ──────────────────────────────────────────
+# Prisma migrations lock (keep migrations, ignore lock)
+# ──────────────────────────────────────────
+backend/prisma/migrations/migration_lock.toml

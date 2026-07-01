@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  password  String
+  name      String
+  vehicles  Vehicle[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Vehicle {
+  id           String              @id @default(uuid())
+  userId       String
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brand        String
+  model        String
+  year         Int
+  engine       String
+  plate        String?
+  mileage      Int
+  maintenances MaintenanceRecord[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+}
+
+model MaintenanceRecord {
+  id                     String    @id @default(uuid())
+  vehicleId              String
+  vehicle                Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  type                   String    // e.g. "Óleo", "Pastilhas", "Pneus", "Filtros", "Geral"
+  description            String
+  mileageAtMaintenance   Int
+  dateOfMaintenance      DateTime
+  nextMaintenanceMileage Int?
+  nextMaintenanceDate    DateTime?
+  notes                  String?
+  status                 String    @default("COMPLETED") // COMPLETED, PENDING
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+}
+
+model CarSpecsReference {
+  id                String   @id @default(uuid())
+  brand             String
+  model             String
+  engine            String
+  recommendedOil    String   // e.g. "SAE 0W-20 API SN"
+  oilCapacity       Float    // in Liters, e.g. 3.5
+  tirePressureFront Int      // in PSI, e.g. 32
+  tirePressureRear  Int      // in PSI, e.g. 32
+  sparkPlugModel    String?  // e.g. "NGK LMAR7A-9"
+  brakeFluidType    String?  // e.g. "DOT 4"
+  coolantType       String?  // e.g. "Etilenoglicol Orgânico"
+  createdAt         DateTime @default(now())
+
+  @@unique([brand, model, engine])
+}

@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #020617;
+    overflow-x: hidden;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Parallax Dynamic Background Layers */
+.parallax-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 50% 10%, rgba(16, 185, 129, 0.08) 0%, rgba(2, 6, 23, 0) 80%);
+  transform: translate3d(0, var(--scroll-y-slow, 0px), 0);
+  transition: transform 0.1s ease-out;
+}
+
+.parallax-grid {
+  position: fixed;
+  inset: -50px;
+  z-index: -2;
+  pointer-events: none;
+  background-size: 60px 60px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  transform: translate3d(0, var(--scroll-y-fast, 0px), 0);
+  transition: transform 0.05s ease-out;
+  mask-image: radial-gradient(circle at 50% 50%, black 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, black 30%, transparent 100%);
+}
+
+/* Cockpit Carbon Fiber and Performance aesthetics */
+.cockpit-panel {
+  background-color: rgba(11, 15, 26, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.cockpit-card {
+  background: linear-gradient(135deg, rgba(20, 27, 45, 0.7) 0%, rgba(10, 14, 26, 0.9) 100%);
+  border-left: 3px solid #10b981; /* Emerald speed bar */
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  border-right: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cockpit-card:hover {
+  border-left-color: #34d399;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -10px rgba(16, 185, 129, 0.2);
+}
+
+/* Speed Lines Background Overlay */
+.speed-stripes {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(16, 185, 129, 0.03) 0px,
+    rgba(16, 185, 129, 0.03) 2px,
+    transparent 2px,
+    transparent 8px
+  );
+}
+
+/* Custom Scrollbar for modern feel */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #020617;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #10b98133;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #10b98188;
+}
