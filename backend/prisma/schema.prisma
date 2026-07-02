@@ -39,7 +39,7 @@ model MaintenanceRecord {
   id                     String    @id @default(uuid())
   vehicleId              String
   vehicle                Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  type                   String    // e.g. "Óleo", "Pastilhas", "Pneus", "Filtros", "Geral"
+  type                   String // e.g. "Óleo", "Pastilhas", "Pneus", "Filtros", "Geral"
   description            String
   mileageAtMaintenance   Int
   dateOfMaintenance      DateTime
@@ -52,18 +52,36 @@ model MaintenanceRecord {
 }
 
 model CarSpecsReference {
-  id                String   @id @default(uuid())
-  brand             String
-  model             String
-  engine            String
-  recommendedOil    String   // e.g. "SAE 0W-20 API SN"
-  oilCapacity       Float    // in Liters, e.g. 3.5
-  tirePressureFront Int      // in PSI, e.g. 32
-  tirePressureRear  Int      // in PSI, e.g. 32
-  sparkPlugModel    String?  // e.g. "NGK LMAR7A-9"
-  brakeFluidType    String?  // e.g. "DOT 4"
-  coolantType       String?  // e.g. "Etilenoglicol Orgânico"
-  createdAt         DateTime @default(now())
+  id     String @id @default(uuid())
+  brand  String
+  model  String
+  engine String
+
+  // Óleo e Manutenção
+  recommendedOil String
+  oilCapacity    Float
+  sparkPlugModel String?
+  brakeFluidType String?
+  coolantType    String?
+
+  // Pneus e Pressão
+  tirePressureFront Int
+  tirePressureRear  Int
+  tireSize          String?
+
+  // Motorização
+  powerAndTorque     String?
+  fuelType           String?
+  averageConsumption String?
+
+  // Estrutura e Elétrica
+  fuelTankCapacity  String?
+  suspensionType    String?
+  headlightBulb     String?
+  trunkCapacity     String?
+  otherRelevantData String?
+
+  createdAt DateTime @default(now())
 
   @@unique([brand, model, engine])
 }

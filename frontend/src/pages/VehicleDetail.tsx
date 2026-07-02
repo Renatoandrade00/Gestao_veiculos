@@ -39,6 +39,15 @@ interface Vehicle {
     sparkPlugModel: string | null;
     brakeFluidType: string | null;
     coolantType: string | null;
+    powerAndTorque?: string | null;
+    tireSize?: string | null;
+    fuelType?: string | null;
+    fuelTankCapacity?: string | null;
+    averageConsumption?: string | null;
+    suspensionType?: string | null;
+    headlightBulb?: string | null;
+    trunkCapacity?: string | null;
+    otherRelevantData?: string | null;
   } | null;
 }
 
@@ -67,6 +76,9 @@ export const VehicleDetail: React.FC = () => {
   const [isEditingKm, setIsEditingKm] = useState(false);
   const [newKm, setNewKm] = useState('');
   const [updatingKm, setUpdatingKm] = useState(false);
+
+  // Ficha técnica completa
+  const [showSpecsModal, setShowSpecsModal] = useState(false);
 
   const fetchVehicle = async () => {
     try {
@@ -298,7 +310,17 @@ export const VehicleDetail: React.FC = () => {
           {/* Technical Specs Card */}
           <div className="cockpit-card border-l-emerald-600 bg-slate-900/40 p-6 rounded-xl shadow-lg relative overflow-hidden">
             <div className="absolute inset-0 speed-stripes opacity-10 pointer-events-none" />
-            <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-900/60 pb-2">Painel Técnico</h3>
+            <div className="flex justify-between items-center mb-4 border-b border-slate-900/60 pb-2 relative z-10">
+              <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Painel Técnico</h3>
+              {vehicle.specs && (
+                <button 
+                  onClick={() => setShowSpecsModal(true)} 
+                  className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-1.5 rounded hover:bg-emerald-500/20 transition-colors uppercase font-bold tracking-wider flex items-center gap-1.5"
+                >
+                  <Sparkles size={12} /> Ficha Completa
+                </button>
+              )}
+            </div>
             {vehicle.specs ? (
               <div className="flex flex-col gap-3.5 text-xs text-slate-300">
                 <div className="flex justify-between border-b border-slate-900 pb-1.5">
@@ -590,6 +612,69 @@ export const VehicleDetail: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Modal Ficha Técnica */}
+      {showSpecsModal && vehicle.specs && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowSpecsModal(false)}>
+          <div className="bg-slate-900 border border-slate-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 p-4 flex justify-between items-center z-10">
+              <div>
+                <h3 className="text-lg font-bold text-slate-100">Ficha Técnica Detalhada</h3>
+                <p className="text-xs text-slate-400">{vehicle.brand} {vehicle.model} - {vehicle.engine}</p>
+              </div>
+              <button onClick={() => setShowSpecsModal(false)} className="text-slate-500 hover:text-slate-300 p-2">✕</button>
+            </div>
+            
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 text-sm">
+              <div>
+                <h4 className="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-3 border-b border-slate-800 pb-1">Motorização & Desempenho</h4>
+                <div className="space-y-2.5">
+                  <div className="flex justify-between"><span className="text-slate-500">Motor:</span> <span className="text-slate-200 font-medium text-right ml-4">{vehicle.engine}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Potência / Torque:</span> <span className="text-slate-200 font-medium text-right ml-4">{vehicle.specs.powerAndTorque || 'N/D'}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Combustível:</span> <span className="text-slate-200 font-medium text-right ml-4">{vehicle.specs.fuelType || 'N/D'}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Consumo Médio:</span> <span className="text-slate-200 font-medium text-right ml-4">{vehicle.specs.averageConsumption || 'N/D'}</span></div>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-3 border-b border-slate-800 pb-1">Manutenção Vital</h4>
+                <div className="space-y-2.5">
+                  <div className="flex justify-between"><span className="text-slate-500">Óleo Motor:</span> <span className="text-slate-200 font-medium text-right ml-4">{vehicle.specs.recommendedOil}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Capacidade Óleo:</span> <span className="text-slate-200 font-medium text-right ml-4">{vehicle.specs.oilCapacity} L</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Velas Ignição:</span> <span className="text-slate-200 font-medium text-right ml-4">{vehicle.specs.sparkPlugModel || 'N/D'}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Aditivo Radiador:</span> <span className="text-slate-200 font-medium text-right ml-4">{vehicle.specs.coolantType || 'N/D'}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Fluido Freio:</span> <span className="text-slate-200 font-medium text-right ml-4">{vehicle.specs.brakeFluidType || 'N/D'}</span></div>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-3 border-b border-slate-800 pb-1">Chassi & Suspensão</h4>
+                <div className="space-y-2.5">
+                  <div className="flex justify-between"><span className="text-slate-500">Pneus (Medidas):</span> <span className="text-slate-200 font-medium text-right ml-4">{vehicle.specs.tireSize || 'N/D'}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Pressão (Diant/Tras):</span> <span className="text-slate-200 font-medium text-right ml-4">{vehicle.specs.tirePressureFront} / {vehicle.specs.tirePressureRear} PSI</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Suspensão:</span> <span className="text-slate-200 font-medium text-right max-w-[150px] ml-4 leading-tight">{vehicle.specs.suspensionType || 'N/D'}</span></div>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-3 border-b border-slate-800 pb-1">Estrutura & Elétrica</h4>
+                <div className="space-y-2.5">
+                  <div className="flex justify-between"><span className="text-slate-500">Tanque:</span> <span className="text-slate-200 font-medium text-right ml-4">{vehicle.specs.fuelTankCapacity || 'N/D'}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Porta-Malas:</span> <span className="text-slate-200 font-medium text-right ml-4">{vehicle.specs.trunkCapacity || 'N/D'}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Lâmpada Farol:</span> <span className="text-slate-200 font-medium text-right ml-4">{vehicle.specs.headlightBulb || 'N/D'}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Outros:</span> <span className="text-slate-200 font-medium text-right ml-4">{vehicle.specs.otherRelevantData || 'N/D'}</span></div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 border-t border-slate-800 flex justify-end">
+              <Button onClick={() => setShowSpecsModal(false)} className="w-auto px-6 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200">
+                Fechar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
