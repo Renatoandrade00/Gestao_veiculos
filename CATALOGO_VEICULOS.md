@@ -842,3 +842,182 @@ Este documento lista os 45 veículos cadastrados no banco de dados com suas espe
 - **Lâmpada do Farol**: H7
 - **Outros/Tração**: N/D
 
+### Virtus (1.0 200 TSI Flex)
+
+- **Potência / Torque**: 128 cv / 20,4 kgfm
+- **Combustível**: Flex
+- **Consumo Médio**: 11.0 km/l (C) / 14.0 km/l (E)
+- **Óleo Recomendado**: 5W-40 VW 502.00
+- **Capacidade do Cárter**: 4.0 L
+- **Velas de Ignição**: NGK PZKER7A8EGS
+- **Aditivo do Radiador**: G13 Rosa
+- **Fluido de Freio**: DOT 4
+- **Pneus (Medidas)**: 205/55 R17
+- **Pressão dos Pneus (Diant/Tras)**: 33 / 33 PSI
+- **Suspensão**: MacPherson / Eixo de Torção
+- **Tanque de Combustível**: 52 L
+- **Porta-Malas**: 521 L
+- **Lâmpada do Farol**: H7 ou LED
+- **Outros/Tração**: N/D
+
+### HB20S (1.0 12V TGDI Flex)
+
+- **Potência / Torque**: 120 cv / 17,5 kgfm
+- **Combustível**: Flex
+- **Consumo Médio**: 11.0 km/l (C) / 14.5 km/l (E)
+- **Óleo Recomendado**: 5W-30 API SN
+- **Capacidade do Cárter**: 2.9 L
+- **Velas de Ignição**: NGK SILZKBR8D8G
+- **Aditivo do Radiador**: Hyundai Verde
+- **Fluido de Freio**: DOT 4
+- **Pneus (Medidas)**: 185/60 R15
+- **Pressão dos Pneus (Diant/Tras)**: 32 / 32 PSI
+- **Suspensão**: MacPherson / Eixo de Torção
+- **Tanque de Combustível**: 50 L
+- **Porta-Malas**: 475 L
+- **Lâmpada do Farol**: H4 ou Projector
+- **Outros/Tração**: N/D
+
+### Pulse (1.0 Turbo 200 Flex)
+
+- **Potência / Torque**: 130 cv / 20,4 kgfm
+- **Combustível**: Flex
+- **Consumo Médio**: 10.5 km/l (C) / 13.5 km/l (E)
+- **Óleo Recomendado**: 0W-20 API SN
+- **Capacidade do Cárter**: 3.5 L
+- **Velas de Ignição**: NGK ILKR8P8
+- **Aditivo do Radiador**: Paraflu Rosa
+- **Fluido de Freio**: DOT 4
+- **Pneus (Medidas)**: 195/60 R16
+- **Pressão dos Pneus (Diant/Tras)**: 32 / 32 PSI
+- **Suspensão**: MacPherson / Eixo de Torção
+- **Tanque de Combustível**: 47 L
+- **Porta-Malas**: 370 L
+- **Lâmpada do Farol**: LED
+- **Outros/Tração**: N/D
+
+### Compass (2.0 Multijet II Diesel)
+
+- **Potência / Torque**: 170 cv / 35,7 kgfm
+- **Combustível**: Diesel
+- **Consumo Médio**: 10.5 km/l (C) / 13.5 km/l (E)
+- **Óleo Recomendado**: 5W-30 ACEA C2
+- **Capacidade do Cárter**: 4.2 L
+- **Velas de Ignição**: N/A
+- **Aditivo do Radiador**: Mopar Orgânico Vermelho
+- **Fluido de Freio**: DOT 4
+- **Pneus (Medidas)**: 225/55 R18
+- **Pressão dos Pneus (Diant/Tras)**: 35 / 35 PSI
+- **Suspensão**: MacPherson / MacPherson
+- **Tanque de Combustível**: 60 L
+- **Porta-Malas**: 410 L
+- **Lâmpada do Farol**: LED
+- **Outros/Tração**: Tração 4x4
+
+### Corolla Cross (1.8 16V VVT-i Hybrid)
+
+- **Potência / Torque**: 122 cv (Combinado)
+- **Combustível**: Flex
+- **Consumo Médio**: 17.0 km/l (C) / 14.5 km/l (E)
+- **Óleo Recomendado**: 0W-20 API SN
+- **Capacidade do Cárter**: 4.2 L
+- **Velas de Ignição**: NGK FC20HR-Q8
+- **Aditivo do Radiador**: Toyota Super Long Life (Rosa)
+- **Fluido de Freio**: DOT 3
+- **Pneus (Medidas)**: 225/50 R18
+- **Pressão dos Pneus (Diant/Tras)**: 33 / 33 PSI
+- **Suspensão**: MacPherson / Eixo de Torção
+- **Tanque de Combustível**: 36 L
+- **Porta-Malas**: 440 L
+- **Lâmpada do Farol**: LED
+- **Outros/Tração**: Sistema Híbrido
+
+### Spin (1.8 8V SPE/4 Eco Flex)
+
+- **Potência / Torque**: 111 cv / 17,7 kgfm
+- **Combustível**: Flex
+- **Consumo Médio**: 10.0 km/l (C) / 12.5 km/l (E)
+- **Óleo Recomendado**: 0W-20 API SN Dexos 1
+- **Capacidade do Cárter**: 3.5 L
+- **Velas de Ignição**: NGK BPR6EY
+- **Aditivo do Radiador**: Dex-Cool Laranja
+- **Fluido de Freio**: DOT 4
+- **Pneus (Medidas)**: 195/65 R15
+- **Pressão dos Pneus (Diant/Tras)**: 35 / 35 PSI
+- **Suspensão**: MacPherson / Eixo de Torção
+- **Tanque de Combustível**: 53 L
+- **Porta-Malas**: 710 L (5 lug) / 162 L (7 lug)
+- **Lâmpada do Farol**: H4
+- **Outros/Tração**: N/D
+
+### City (1.5 16V DI DOHC i-VTEC)
+
+- **Potência / Torque**: 126 cv / 15,5 kgfm
+- **Combustível**: Flex
+- **Consumo Médio**: 11.5 km/l (C) / 15.0 km/l (E)
+- **Óleo Recomendado**: 0W-20 API SN
+- **Capacidade do Cárter**: 3.6 L
+- **Velas de Ignição**: NGK DILZKAR7C11S
+- **Aditivo do Radiador**: Honda Azul
+- **Fluido de Freio**: DOT 4
+- **Pneus (Medidas)**: 185/55 R16
+- **Pressão dos Pneus (Diant/Tras)**: 32 / 32 PSI
+- **Suspensão**: MacPherson / Eixo de Torção
+- **Tanque de Combustível**: 39 L
+- **Porta-Malas**: 519 L
+- **Lâmpada do Farol**: LED
+- **Outros/Tração**: N/D
+
+### Duster (1.3 TCe Flex)
+
+- **Potência / Torque**: 170 cv / 27,5 kgfm
+- **Combustível**: Flex
+- **Consumo Médio**: 10.0 km/l (C) / 13.0 km/l (E)
+- **Óleo Recomendado**: 5W-30 API SN
+- **Capacidade do Cárter**: 4.5 L
+- **Velas de Ignição**: NGK ILKAR7B11
+- **Aditivo do Radiador**: Renault Glaceol RX Type D
+- **Fluido de Freio**: DOT 4
+- **Pneus (Medidas)**: 215/60 R17
+- **Pressão dos Pneus (Diant/Tras)**: 30 / 30 PSI
+- **Suspensão**: MacPherson / Eixo de Torção
+- **Tanque de Combustível**: 50 L
+- **Porta-Malas**: 475 L
+- **Lâmpada do Farol**: LED
+- **Outros/Tração**: N/D
+
+### Sentra (2.0 16V CVT Gasolina)
+
+- **Potência / Torque**: 151 cv / 20,0 kgfm
+- **Combustível**: Gasolina
+- **Consumo Médio**: 11.0 km/l (C) / 14.0 km/l (E)
+- **Óleo Recomendado**: 0W-20 API SN
+- **Capacidade do Cárter**: 4.0 L
+- **Velas de Ignição**: NGK DILKAR6A-11
+- **Aditivo do Radiador**: Nissan Azul
+- **Fluido de Freio**: DOT 4
+- **Pneus (Medidas)**: 215/50 R17
+- **Pressão dos Pneus (Diant/Tras)**: 33 / 33 PSI
+- **Suspensão**: MacPherson / Multi-link
+- **Tanque de Combustível**: 47 L
+- **Porta-Malas**: 466 L
+- **Lâmpada do Farol**: LED
+- **Outros/Tração**: N/D
+
+### 2008 (1.6 16V THP Flex)
+
+- **Potência / Torque**: 173 cv / 24,5 kgfm
+- **Combustível**: Flex
+- **Consumo Médio**: 9.5 km/l (C) / 12.0 km/l (E)
+- **Óleo Recomendado**: 0W-30 ACEA C2
+- **Capacidade do Cárter**: 4.2 L
+- **Velas de Ignição**: NGK PLZKBR7A-G
+- **Aditivo do Radiador**: Total Glacelf
+- **Fluido de Freio**: DOT 4
+- **Pneus (Medidas)**: 205/60 R16
+- **Pressão dos Pneus (Diant/Tras)**: 32 / 32 PSI
+- **Suspensão**: MacPherson / Eixo de Torção
+- **Tanque de Combustível**: 55 L
+- **Porta-Malas**: 355 L
+- **Lâmpada do Farol**: H7
+- **Outros/Tração**: N/D
