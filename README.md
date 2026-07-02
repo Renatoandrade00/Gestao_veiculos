@@ -2,6 +2,8 @@
 
 Este é um sistema completo e moderno para controle de manutenções veiculares, projetado com uma experiência mobile-first de alta fidelidade e arquitetura de microsserviços/monorepo. O sistema é composto por uma API robusta em Node.js com TypeScript e um aplicativo web moderno em React com Tailwind CSS v4, preparado para empacotamento móvel (PWA/Capacitor).
 
+> **🔗 Acesse o Sistema no ar:** [Testar Aplicação (Live Demo)](https://vehicle-maintenance-frontend-mb92.onrender.com)
+
 ---
 
 ## 🚀 Tecnologias Utilizadas
