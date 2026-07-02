@@ -113,3 +113,10 @@ O projeto adota uma estética premium e minimalista. As definições visuais, pa
 ## 📄 Licença
 
 Este projeto é desenvolvido para fins educacionais e de gerenciamento interno.
+
+
+## 🤝 Conecte-se comigo
+
+- **LinkedIn:** [Renato Andrade](www.linkedin.com/in/renato-andrade-a79570299)
+- **DIO:** [Renato Andrade](https://web.dio.me/users/renatoandrade00)
+
