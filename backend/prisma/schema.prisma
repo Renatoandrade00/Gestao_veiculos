@@ -82,6 +82,4 @@ model CarSpecsReference {
   otherRelevantData String?
 
   createdAt DateTime @default(now())
-
-  @@unique([brand, model, engine])
 }

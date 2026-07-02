@@ -82,15 +82,9 @@ const carSpecs = [
 async function main() {
   console.log('Iniciando seed do banco de dados com 43 modelos expandidos (15 marcas)...');
   await prisma.carSpecsReference.deleteMany();
-  for (const spec of carSpecs) {
-    await prisma.carSpecsReference.upsert({
-      where: {
-        brand_model_engine: { brand: spec.brand, model: spec.model, engine: spec.engine }
-      },
-      update: {},
-      create: spec
-    });
-  }
+  await prisma.carSpecsReference.createMany({
+    data: carSpecs,
+  });
   console.log(`Seed concluído com sucesso. ${carSpecs.length} registros inseridos.`);
 }
 
