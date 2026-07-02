@@ -8,7 +8,6 @@ services:
   - type: web
     name: vehicle-maintenance-backend
     env: node
-    region: ohio
     plan: free
     buildCommand: npm install --prefix backend && npm run build --prefix backend && cd backend && npx prisma db push --accept-data-loss && npx prisma db seed
     startCommand: cd backend && npm run start
