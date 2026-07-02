@@ -5,6 +5,7 @@ import api from '../services/api';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
+import { Select } from '../components/Select';
 import { Alert } from '../components/Alert';
 import { LogOut, Plus, Car, Calendar, Gauge, CheckCircle, AlertTriangle, Mail } from 'lucide-react';
 
@@ -59,6 +60,11 @@ export const Dashboard: React.FC = () => {
   const [model, setModel] = useState('');
   const [year, setYear] = useState('');
   const [engine, setEngine] = useState('');
+  
+  const [customBrand, setCustomBrand] = useState('');
+  const [customModel, setCustomModel] = useState('');
+  const [customEngine, setCustomEngine] = useState('');
+  
   const [plate, setPlate] = useState('');
   const [mileage, setMileage] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -101,11 +107,21 @@ export const Dashboard: React.FC = () => {
     setSubmitting(true);
 
     try {
+      const finalBrand = brand === 'Outro' ? customBrand : brand;
+      const finalModel = model === 'Outro' ? customModel : model;
+      const finalEngine = engine === 'Outro' ? customEngine : engine;
+      
+      if (!finalBrand || !finalModel || !finalEngine) {
+        setError('Preencha a marca, modelo e motorização do veículo.');
+        setSubmitting(false);
+        return;
+      }
+
       await api.post('/vehicles', {
-        brand,
-        model,
+        brand: finalBrand,
+        model: finalModel,
         year: parseInt(year),
-        engine,
+        engine: finalEngine,
         plate: plate || undefined,
         mileage: parseInt(mileage),
       });
@@ -115,6 +131,9 @@ export const Dashboard: React.FC = () => {
       setModel('');
       setYear('');
       setEngine('');
+      setCustomBrand('');
+      setCustomModel('');
+      setCustomEngine('');
       setPlate('');
       setMileage('');
       setShowAddForm(false);
@@ -203,6 +222,26 @@ export const Dashboard: React.FC = () => {
     }
     return status;
   };
+
+  const uniqueBrands = Array.from(new Set(specs.map(s => s.brand))).sort();
+  const brandOptions = [
+    ...uniqueBrands.map(b => ({ value: b, label: b })),
+    { value: 'Outro', label: 'Outro...' }
+  ];
+
+  const filteredSpecsByBrand = specs.filter(s => s.brand === brand);
+  const uniqueModels = Array.from(new Set(filteredSpecsByBrand.map(s => s.model))).sort();
+  const modelOptions = [
+    ...uniqueModels.map(m => ({ value: m, label: m })),
+    { value: 'Outro', label: 'Outro...' }
+  ];
+
+  const filteredSpecsByModel = filteredSpecsByBrand.filter(s => s.model === model);
+  const uniqueEngines = Array.from(new Set(filteredSpecsByModel.map(s => s.engine))).sort();
+  const engineOptions = [
+    ...uniqueEngines.map(e => ({ value: e, label: e })),
+    { value: 'Outro', label: 'Outro...' }
+  ];
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col">
@@ -311,22 +350,65 @@ export const Dashboard: React.FC = () => {
             {error && <Alert type="error" className="mb-4">{error}</Alert>}
 
             <form onSubmit={handleAddVehicle} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input
-                id="brand"
-                label="Marca"
-                placeholder="Ex: Chevrolet"
-                value={brand}
-                onChange={(e) => setBrand(e.target.value)}
-                required
-              />
-              <Input
-                id="model"
-                label="Modelo"
-                placeholder="Ex: Onix"
-                value={model}
-                onChange={(e) => setModel(e.target.value)}
-                required
-              />
+              <div className="flex flex-col gap-2">
+                <Select
+                  id="brand"
+                  label="Marca"
+                  value={brand}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setBrand(val);
+                    if (val === 'Outro') {
+                      setModel('Outro');
+                      setEngine('Outro');
+                    } else {
+                      setModel('');
+                      setEngine('');
+                    }
+                  }}
+                  options={brandOptions}
+                  required
+                />
+                {brand === 'Outro' && (
+                  <Input
+                    id="customBrand"
+                    placeholder="Digite a marca"
+                    value={customBrand}
+                    onChange={(e) => setCustomBrand(e.target.value)}
+                    required
+                  />
+                )}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Select
+                  id="model"
+                  label="Modelo"
+                  value={model}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setModel(val);
+                    if (val === 'Outro') {
+                      setEngine('Outro');
+                    } else {
+                      setEngine('');
+                    }
+                  }}
+                  options={modelOptions}
+                  required
+                  disabled={!brand}
+                />
+                {(model === 'Outro' || brand === 'Outro') && (
+                  <Input
+                    id="customModel"
+                    placeholder="Digite o modelo"
+                    value={customModel}
+                    onChange={(e) => setCustomModel(e.target.value)}
+                    required
+                  />
+                )}
+              </div>
+
               <Input
                 id="year"
                 type="number"
@@ -336,14 +418,27 @@ export const Dashboard: React.FC = () => {
                 onChange={(e) => setYear(e.target.value)}
                 required
               />
-              <Input
-                id="engine"
-                label="Motorização"
-                placeholder="Ex: 1.0 Flex"
-                value={engine}
-                onChange={(e) => setEngine(e.target.value)}
-                required
-              />
+
+              <div className="flex flex-col gap-2">
+                <Select
+                  id="engine"
+                  label="Motorização"
+                  value={engine}
+                  onChange={(e) => setEngine(e.target.value)}
+                  options={engineOptions}
+                  required
+                  disabled={!model}
+                />
+                {(engine === 'Outro' || model === 'Outro' || brand === 'Outro') && (
+                  <Input
+                    id="customEngine"
+                    placeholder="Digite a motorização"
+                    value={customEngine}
+                    onChange={(e) => setCustomEngine(e.target.value)}
+                    required
+                  />
+                )}
+              </div>
               <Input
                 id="plate"
                 label="Placa (Opcional)"
