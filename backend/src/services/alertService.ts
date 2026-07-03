@@ -152,11 +152,26 @@ export async function checkUserAlerts(userId: string): Promise<{ alertsSentCount
 
       for (const maintenance of vehicle.maintenances) {
         const existing = latestByType.get(maintenance.type);
-        if (
-          !existing ||
-          new Date(maintenance.dateOfMaintenance) > new Date(existing.dateOfMaintenance)
-        ) {
+        if (!existing) {
           latestByType.set(maintenance.type, maintenance);
+        } else {
+          const mDate = new Date(maintenance.dateOfMaintenance).getTime();
+          const existingDate = new Date(existing.dateOfMaintenance).getTime();
+
+          if (mDate > existingDate) {
+            latestByType.set(maintenance.type, maintenance);
+          } else if (mDate === existingDate) {
+            // Prioriza registros PENDING (agendamentos) quando as datas coincidem
+            if (maintenance.status === 'PENDING' && existing.status !== 'PENDING') {
+              latestByType.set(maintenance.type, maintenance);
+            } else if (maintenance.status === existing.status) {
+              // Ou prioriza aquele que possui dados de agendamento futuro
+              if ((maintenance.nextMaintenanceMileage || maintenance.nextMaintenanceDate) && 
+                  (!existing.nextMaintenanceMileage && !existing.nextMaintenanceDate)) {
+                latestByType.set(maintenance.type, maintenance);
+              }
+            }
+          }
         }
       }
 

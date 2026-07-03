@@ -194,8 +194,26 @@ export const Dashboard: React.FC = () => {
     const latestByType = new Map<string, MaintenanceRecord>();
     for (const m of vehicle.maintenances) {
       const existing = latestByType.get(m.type);
-      if (!existing || new Date(m.dateOfMaintenance) > new Date(existing.dateOfMaintenance)) {
+      if (!existing) {
         latestByType.set(m.type, m);
+      } else {
+        const mDate = new Date(m.dateOfMaintenance).getTime();
+        const existingDate = new Date(existing.dateOfMaintenance).getTime();
+        
+        if (mDate > existingDate) {
+          latestByType.set(m.type, m);
+        } else if (mDate === existingDate) {
+          // Prioriza o registro PENDING (lembrete automático) quando na mesma data
+          if (m.status === 'PENDING' && existing.status !== 'PENDING') {
+            latestByType.set(m.type, m);
+          } else if (m.status === existing.status) {
+            // Se ambos tem mesmo status, prioriza o que tem agendamento futuro
+            if ((m.nextMaintenanceMileage || m.nextMaintenanceDate) && 
+                (!existing.nextMaintenanceMileage && !existing.nextMaintenanceDate)) {
+              latestByType.set(m.type, m);
+            }
+          }
+        }
       }
     }
 
