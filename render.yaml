@@ -3,6 +3,8 @@ services:
     name: vehicle-backend
     env: node
     region: oregon
+    plan: free
+    healthCheckPath: /health
     buildCommand: cd backend && npm install && npx prisma generate && npm run build
     startCommand: cd backend && npx prisma migrate deploy && npm run db:seed && npm start
     envVars:
@@ -14,6 +16,10 @@ services:
         generateValue: true
       - key: PORT
         value: 10000
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGINS
+        sync: false
 
   - type: web
     name: vehicle-frontend
@@ -27,6 +33,11 @@ services:
           type: web
           name: vehicle-backend
           property: url
+    # SPA rewrite: qualquer rota profunda (/vehicle/:id) serve o index.html
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
 
 databases:
   - name: vehicle-db

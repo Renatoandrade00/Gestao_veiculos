@@ -1,7 +1,18 @@
 import nodemailer from 'nodemailer';
 import { db } from '../lib/db';
+import { pickLatestByType, daysUntil, WARNING_KM_THRESHOLD, WARNING_DAYS_THRESHOLD } from './maintenanceStatus';
 
 let transporterPromise: Promise<nodemailer.Transporter> | null = null;
+
+// Escapa caracteres HTML para evitar injeção em campos interpolados no e-mail
+export function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
 // Inicializar Nodemailer com SMTP real ou modo de log (dev)
 // nodemailer v9 removeu createTestAccount() e getTestMessageUrl().
@@ -63,6 +74,8 @@ export async function sendAlertEmail(
     const transporter = await initTransporter();
 
     const alertItemsHtml = alerts.map(alert => {
+      const vehicleModel = escapeHtml(alert.vehicleModel);
+      const maintenanceType = escapeHtml(alert.maintenanceType);
       const reasonText =
         alert.reason === 'mileage'
           ? `A quilometragem recomendada (${alert.targetMileage} km) está próxima ou foi atingida (Atual: ${alert.currentMileage} km).`
@@ -72,7 +85,7 @@ export async function sendAlertEmail(
 
       return `
         <div style="border-left: 4px solid #f59e0b; padding: 12px; margin-bottom: 16px; background-color: #fef3c7; border-radius: 4px;">
-          <h3 style="margin: 0 0 6px 0; color: #b45309;">${alert.vehicleModel} - ${alert.maintenanceType}</h3>
+          <h3 style="margin: 0 0 6px 0; color: #b45309;">${vehicleModel} - ${maintenanceType}</h3>
           <p style="margin: 0; color: #78350f; font-size: 14px;"><strong>Motivo:</strong> ${reasonText}</p>
         </div>
       `;
@@ -84,7 +97,7 @@ export async function sendAlertEmail(
       subject: '⚠️ Alerta de Manutenção Veicular Próxima do Vencimento!',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1f2937;">
-          <h2 style="color: #1e3a8a; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">Olá, ${userName}!</h2>
+          <h2 style="color: #1e3a8a; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">Olá, ${escapeHtml(userName)}!</h2>
           <p style="font-size: 16px; line-height: 1.5;">Identificamos que alguns itens de manutenção dos seus veículos precisam de atenção em breve:</p>
           <div style="margin: 20px 0;">${alertItemsHtml}</div>
           <p style="font-size: 16px; line-height: 1.5;">Recomendamos agendar a revisão para garantir a segurança e o bom funcionamento do seu veículo.</p>
@@ -97,12 +110,12 @@ export async function sendAlertEmail(
     const info = await transporter.sendMail(mailOptions);
 
     // jsonTransport (modo dev sem SMTP): loga o conteúdo do e-mail no console
-    if ((info as any).envelope) {
-      const jsonInfo = info as any;
+    if ((info as { envelope?: unknown }).envelope) {
+      const jsonInfo = info as { envelope?: { to?: string[] } };
       process.stdout.write(
         `\n${'='.repeat(52)}\n` +
         `📧 [MOCK EMAIL - SEM SMTP CONFIGURADO]\n` +
-        `Para: ${jsonInfo.envelope?.to ?? userEmail}\n` +
+        `Para: ${jsonInfo.envelope?.to?.join(', ') ?? userEmail}\n` +
         `Assunto: ${mailOptions.subject}\n` +
         `Para configurar Ethereal, adicione ETHEREAL_USER e ETHEREAL_PASS no .env\n` +
         `${'='.repeat(52)}\n`
@@ -148,32 +161,7 @@ export async function checkUserAlerts(userId: string): Promise<{ alertsSentCount
     for (const vehicle of user.vehicles) {
       // Agrupa pelo tipo e pega apenas o registro mais recente por tipo.
       // Isso evita alertas duplicados de trocas históricas antigas.
-      const latestByType = new Map<string, typeof vehicle.maintenances[0]>();
-
-      for (const maintenance of vehicle.maintenances) {
-        const existing = latestByType.get(maintenance.type);
-        if (!existing) {
-          latestByType.set(maintenance.type, maintenance);
-        } else {
-          const mDate = new Date(maintenance.dateOfMaintenance).getTime();
-          const existingDate = new Date(existing.dateOfMaintenance).getTime();
-
-          if (mDate > existingDate) {
-            latestByType.set(maintenance.type, maintenance);
-          } else if (mDate === existingDate) {
-            // Prioriza registros PENDING (agendamentos) quando as datas coincidem
-            if (maintenance.status === 'PENDING' && existing.status !== 'PENDING') {
-              latestByType.set(maintenance.type, maintenance);
-            } else if (maintenance.status === existing.status) {
-              // Ou prioriza aquele que possui dados de agendamento futuro
-              if ((maintenance.nextMaintenanceMileage || maintenance.nextMaintenanceDate) && 
-                  (!existing.nextMaintenanceMileage && !existing.nextMaintenanceDate)) {
-                latestByType.set(maintenance.type, maintenance);
-              }
-            }
-          }
-        }
-      }
+      const latestByType = pickLatestByType(vehicle.maintenances);
 
       // Avalia apenas o registro mais recente de cada tipo
       for (const maintenance of latestByType.values()) {
@@ -188,7 +176,7 @@ export async function checkUserAlerts(userId: string): Promise<{ alertsSentCount
         // 1. Verificar por quilometragem (falta menos de 1000km ou já ultrapassou)
         if (maintenance.nextMaintenanceMileage) {
           const kmRemaining = maintenance.nextMaintenanceMileage - vehicle.mileage;
-          if (kmRemaining <= 1000) {
+          if (kmRemaining <= WARNING_KM_THRESHOLD) {
             trigger = true;
             reason = 'mileage';
           }
@@ -196,9 +184,8 @@ export async function checkUserAlerts(userId: string): Promise<{ alertsSentCount
 
         // 2. Verificar por data (falta menos de 30 dias ou já passou)
         if (maintenance.nextMaintenanceDate) {
-          const timeRemaining = maintenance.nextMaintenanceDate.getTime() - now.getTime();
-          const daysRemaining = Math.ceil(timeRemaining / (1000 * 60 * 60 * 24));
-          if (daysRemaining <= 30) {
+          const daysRemaining = daysUntil(maintenance.nextMaintenanceDate, now);
+          if (daysRemaining <= WARNING_DAYS_THRESHOLD) {
             if (trigger) {
               reason = 'both';
             } else {
@@ -233,4 +220,3 @@ export async function checkUserAlerts(userId: string): Promise<{ alertsSentCount
     return { alertsSentCount: 0 };
   }
 }
-

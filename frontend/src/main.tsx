@@ -1,12 +1,20 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ToastProvider } from './components/Toast';
+import { Spinner } from './components/Spinner';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
-import { Dashboard } from './pages/Dashboard';
-import { VehicleDetail } from './pages/VehicleDetail';
 import './globals.css';
+
+// Code splitting: páginas pesadas carregadas sob demanda
+const Dashboard = lazy(() =>
+  import('./pages/Dashboard').then((m) => ({ default: m.Dashboard }))
+);
+const VehicleDetail = lazy(() =>
+  import('./pages/VehicleDetail').then((m) => ({ default: m.VehicleDetail }))
+);
 
 // Componente para rotas protegidas
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -15,10 +23,7 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-500">
-        <svg className="animate-spin h-8 w-8 text-emerald-500" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-        </svg>
+        <Spinner size={10} />
       </div>
     );
   }
@@ -30,22 +35,41 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-500">
+        <Spinner size={10} />
+      </div>
+    );
+  }
 
   return !user ? <>{children}</> : <Navigate to="/" replace />;
 };
 
 const ParallaxWrapper: React.FC = () => {
   React.useEffect(() => {
+    let rafId: number | null = null;
+    let pendingScroll = 0;
+
+    const applyScroll = () => {
+      rafId = null;
+      document.documentElement.style.setProperty('--scroll-y-slow', `${pendingScroll * 0.15}px`);
+      document.documentElement.style.setProperty('--scroll-y-fast', `${pendingScroll * 0.4}px`);
+    };
+
+    // Throttle via requestAnimationFrame: só aplica CSS vars 1x por frame
     const handleScroll = () => {
-      const scrolled = window.scrollY;
-      // Define deslocamentos parallax em diferentes velocidades sem causar repintura pesada
-      document.documentElement.style.setProperty('--scroll-y-slow', `${scrolled * 0.15}px`);
-      document.documentElement.style.setProperty('--scroll-y-fast', `${scrolled * 0.4}px`);
+      pendingScroll = window.scrollY;
+      if (rafId === null) {
+        rafId = requestAnimationFrame(applyScroll);
+      }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   return (
@@ -61,57 +85,76 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <ParallaxWrapper />
-        <Routes>
-          {/* Rotas Públicas */}
-          <Route
-            path="/login"
-            element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <PublicRoute>
-                <Register />
-              </PublicRoute>
-            }
-          />
+        <ToastProvider>
+          <ParallaxWrapper />
+          <Routes>
+            {/* Rotas Públicas */}
+            <Route
+              path="/login"
+              element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <PublicRoute>
+                  <Register />
+                </PublicRoute>
+              }
+            />
 
-          {/* Rotas Protegidas */}
-          <Route
-            path="/"
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/vehicle/:id"
-            element={
-              <PrivateRoute>
-                <VehicleDetail />
-              </PrivateRoute>
-            }
-          />
+            {/* Rotas Protegidas */}
+            <Route
+              path="/"
+              element={
+                <PrivateRoute>
+                  <Suspense
+                    fallback={
+                      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-500">
+                        <Spinner size={10} />
+                      </div>
+                    }
+                  >
+                    <Dashboard />
+                  </Suspense>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/vehicle/:id"
+              element={
+                <PrivateRoute>
+                  <Suspense
+                    fallback={
+                      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-500">
+                        <Spinner size={10} />
+                      </div>
+                    }
+                  >
+                    <VehicleDetail />
+                  </Suspense>
+                </PrivateRoute>
+              }
+            />
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
   );
 };
 
-// Registrar Service Worker se disponível em produção/ambiente suportado
-if ('serviceWorker' in navigator) {
+// Registrar Service Worker apenas em produção (evita conflito com HMR do Vite em dev)
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((reg) => console.log('Service Worker registrado com sucesso:', reg.scope))
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((reg) => console.log('Service Worker registrado:', reg.scope))
       .catch((err) => console.error('Erro ao registrar Service Worker:', err));
   });
 }

@@ -64,3 +64,14 @@ Thumbs.db
 # Prisma migrations lock (keep migrations, ignore lock)
 # ──────────────────────────────────────────
 backend/prisma/migrations/migration_lock.toml
+
+# ──────────────────────────────────────────
+# Debug/scratch artifacts (resíduos de sessões de debug)
+# ──────────────────────────────────────────
+/temp.js
+/temp.html
+/fetch.js
+/test.js
+/index.html
+.agents/
+

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { register, login, getProfile } from '../controllers/auth';
 import { 
   getVehicles, 
@@ -19,9 +20,18 @@ import { authMiddleware } from '../middlewares/authMiddleware';
 
 const router = Router();
 
+// Rate limiting nas rotas públicas de autenticação (anti brute-force)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  limit: 20, // máx. 20 tentativas por janela
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { error: 'Muitas tentativas. Tente novamente em alguns minutos.' },
+});
+
 // Rotas de Autenticação pública
-router.post('/auth/register', register);
-router.post('/auth/login', login);
+router.post('/auth/register', authLimiter, register);
+router.post('/auth/login', authLimiter, login);
 
 // Perfil do Usuário
 router.get('/auth/profile', authMiddleware, getProfile);

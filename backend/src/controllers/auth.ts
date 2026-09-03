@@ -3,25 +3,26 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { db } from '../lib/db';
+import { env } from '../lib/env';
+import { AuthenticatedRequest } from '../middlewares/authMiddleware';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-maintenance-app';
+const JWT_EXPIRES_IN = '7d';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'O nome deve ter pelo menos 2 caracteres'),
-  email: z.string().email('E-mail inválido'),
+  email: z.string().email('E-mail inválido').transform((v) => v.trim().toLowerCase()),
   password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
 });
 
 const loginSchema = z.object({
-  email: z.string().email('E-mail inválido'),
+  email: z.string().email('E-mail inválido').transform((v) => v.trim().toLowerCase()),
   password: z.string().min(6, 'Senha inválida'),
 });
 
 export async function register(req: Request, res: Response) {
   try {
     const validatedData = registerSchema.parse(req.body);
-    
-    // Verificar se o e-mail já existe
+
     const existingUser = await db.user.findUnique({
       where: { email: validatedData.email },
     });
@@ -30,10 +31,8 @@ export async function register(req: Request, res: Response) {
       return res.status(400).json({ error: 'Este e-mail já está cadastrado' });
     }
 
-    // Hash da senha
     const hashedPassword = await bcrypt.hash(validatedData.password, 10);
 
-    // Criar o usuário
     const user = await db.user.create({
       data: {
         name: validatedData.name,
@@ -42,8 +41,7 @@ export async function register(req: Request, res: Response) {
       },
     });
 
-    // Gerar JWT
-    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user.id }, env.JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
     return res.status(201).json({
       token,
@@ -71,16 +69,16 @@ export async function login(req: Request, res: Response) {
     });
 
     if (!user) {
-      return res.status(400).json({ error: 'E-mail ou senha incorretos' });
+      return res.status(401).json({ error: 'E-mail ou senha incorretos' });
     }
 
     const isPasswordValid = await bcrypt.compare(validatedData.password, user.password);
 
     if (!isPasswordValid) {
-      return res.status(400).json({ error: 'E-mail ou senha incorretos' });
+      return res.status(401).json({ error: 'E-mail ou senha incorretos' });
     }
 
-    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user.id }, env.JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
     return res.status(200).json({
       token,
@@ -99,9 +97,13 @@ export async function login(req: Request, res: Response) {
   }
 }
 
-export async function getProfile(req: Request, res: Response) {
-  const userId = (req as any).userId;
-  
+export async function getProfile(req: AuthenticatedRequest, res: Response) {
+  const userId = req.userId;
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Não autenticado' });
+  }
+
   try {
     const user = await db.user.findUnique({
       where: { id: userId },

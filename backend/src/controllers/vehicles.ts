@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { z } from 'zod';
 import { db } from '../lib/db';
 import { AuthenticatedRequest } from '../middlewares/authMiddleware';
+import { calculateVehicleStatus } from '../services/maintenanceStatus';
 
 const vehicleSchema = z.object({
   brand: z.string().min(1, 'A marca é obrigatória'),
@@ -12,6 +13,59 @@ const vehicleSchema = z.object({
   mileage: z.coerce.number().min(0, 'A quilometragem não pode ser negativa'),
 });
 
+/**
+ * Busca as especificações de referência para os veículos em duas queries
+ * (uma por engine, fallback por marca/modelo), evitando o N+1 original.
+ */
+async function attachSpecs<T extends { brand: string; model: string; engine: string }>(
+  vehicles: T[]
+): Promise<(T & { specs: unknown })[]> {
+  if (vehicles.length === 0) return [];
+
+  const brands = [...new Set(vehicles.map((v) => v.brand))];
+  const models = [...new Set(vehicles.map((v) => v.model))];
+  const enginePrefixes = [...new Set(vehicles.map((v) => v.engine.split(' ')[0]))];
+
+  // `in` não suporta startsWith — montamos um OR de startsWith por prefixo de motor
+  const engineCondition = enginePrefixes.flatMap((prefix) =>
+    brands.map((brand) => ({ brand, engine: { startsWith: prefix } }))
+  );
+
+  const [byEngine, byBrandModel] = await Promise.all([
+    db.carSpecsReference.findMany({
+      where: {
+        OR: engineCondition,
+      },
+      orderBy: { createdAt: 'asc' },
+    }),
+    db.carSpecsReference.findMany({
+      where: { brand: { in: brands }, model: { in: models } },
+      orderBy: { createdAt: 'asc' },
+    }),
+  ]);
+
+  const engineIndex = new Map<string, typeof byEngine[0]>();
+  for (const spec of byEngine) {
+    const key = `${spec.brand}|${spec.model}|${spec.engine.split(' ')[0]}`;
+    if (!engineIndex.has(key)) engineIndex.set(key, spec);
+  }
+
+  const brandModelIndex = new Map<string, typeof byBrandModel[0]>();
+  for (const spec of byBrandModel) {
+    const key = `${spec.brand}|${spec.model}`;
+    if (!brandModelIndex.has(key)) brandModelIndex.set(key, spec);
+  }
+
+  return vehicles.map((vehicle) => {
+    const engineKey = `${vehicle.brand}|${vehicle.model}|${vehicle.engine.split(' ')[0]}`;
+    const specs =
+      engineIndex.get(engineKey) ??
+      brandModelIndex.get(`${vehicle.brand}|${vehicle.model}`) ??
+      null;
+    return { ...vehicle, specs };
+  });
+}
+
 // Listar todos os veículos do usuário
 export async function getVehicles(req: AuthenticatedRequest, res: Response) {
   const userId = req.userId!;
@@ -21,40 +75,21 @@ export async function getVehicles(req: AuthenticatedRequest, res: Response) {
       where: { userId },
       include: {
         maintenances: {
-          orderBy: { dateOfMaintenance: 'desc' },
-          take: 5
+          orderBy: { dateOfMaintenance: 'desc' }
         }
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    // Associar as especificações técnicas de referência se houver correspondência
-    const vehiclesWithSpecs = await Promise.all(
-      vehicles.map(async (vehicle) => {
-        const specs = await db.carSpecsReference.findFirst({
-          where: {
-            brand: vehicle.brand,
-            model: vehicle.model,
-            engine: { startsWith: vehicle.engine.split(' ')[0] } // Match aproximado (ex: "1.0")
-          }
-        });
+    const vehiclesWithSpecs = await attachSpecs(vehicles);
 
-        // Caso não dê match perfeito, busca por marca/modelo exato
-        const backupSpecs = specs || await db.carSpecsReference.findFirst({
-          where: {
-            brand: vehicle.brand,
-            model: vehicle.model
-          }
-        });
+    const now = new Date();
+    const withStatus = vehiclesWithSpecs.map((vehicle) => {
+      const { overall, items } = calculateVehicleStatus(vehicle.maintenances, vehicle.mileage, now);
+      return { ...vehicle, status: overall, statusByType: items };
+    });
 
-        return {
-          ...vehicle,
-          specs: backupSpecs || null
-        };
-      })
-    );
-
-    return res.status(200).json(vehiclesWithSpecs);
+    return res.status(200).json(withStatus);
   } catch (error) {
     console.error('Erro ao buscar veículos:', error);
     return res.status(500).json({ error: 'Erro interno ao buscar veículos' });
@@ -80,17 +115,16 @@ export async function getVehicleById(req: AuthenticatedRequest, res: Response) {
       return res.status(404).json({ error: 'Veículo não encontrado' });
     }
 
-    // Buscar especificações de referência
-    const specs = await db.carSpecsReference.findFirst({
-      where: {
-        brand: vehicle.brand,
-        model: vehicle.model
-      }
-    });
+    const [withSpecs] = await attachSpecs([vehicle]);
+    const { overall, items } = calculateVehicleStatus(
+      vehicle.maintenances,
+      vehicle.mileage
+    );
 
     return res.status(200).json({
-      ...vehicle,
-      specs: specs || null
+      ...withSpecs,
+      status: overall,
+      statusByType: items,
     });
   } catch (error) {
     console.error('Erro ao obter veículo:', error);
@@ -133,9 +167,14 @@ export async function updateVehicle(req: AuthenticatedRequest, res: Response) {
   const { id } = req.params;
 
   try {
-    const validatedData = vehicleSchema.parse(req.body);
+    // Update parcial: valida apenas os campos presentes no payload
+    const partialSchema = vehicleSchema.partial();
+    const validatedData = partialSchema.parse(req.body);
 
-    // Verificar se o veículo pertence ao usuário
+    if (Object.keys(validatedData).length === 0) {
+      return res.status(400).json({ error: 'Nenhum campo para atualizar' });
+    }
+
     const existingVehicle = await db.vehicle.findFirst({
       where: { id, userId }
     });
@@ -146,14 +185,7 @@ export async function updateVehicle(req: AuthenticatedRequest, res: Response) {
 
     const updatedVehicle = await db.vehicle.update({
       where: { id },
-      data: {
-        brand: validatedData.brand,
-        model: validatedData.model,
-        year: validatedData.year,
-        engine: validatedData.engine,
-        plate: validatedData.plate || null,
-        mileage: validatedData.mileage,
-      }
+      data: validatedData
     });
 
     return res.status(200).json(updatedVehicle);

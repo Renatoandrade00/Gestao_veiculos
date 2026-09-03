@@ -1,16 +1,25 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import helmet from 'helmet';
 import router from './routes';
-
-// Carregar variáveis de ambiente
-dotenv.config();
+import { env } from './lib/env';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = env.PORT;
 
-// Middlewares
-app.use(cors());
+// Middlewares de segurança
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
+
+// CORS com whitelist (fallback aberto apenas em dev)
+const corsOptions = env.CORS_ORIGINS.length > 0
+  ? { origin: env.CORS_ORIGINS, credentials: true }
+  : { origin: env.NODE_ENV === 'production' ? false : true };
+app.use(cors(corsOptions));
+
 app.use(express.json());
 
 // Rotas da API
@@ -21,8 +30,13 @@ app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'ok', timestamp: new Date() });
 });
 
+// Handler 404 para rotas inexistentes
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ error: 'Rota não encontrada' });
+});
+
 // Middleware de tratamento de erros global
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
   console.error('Erro não tratado:', err);
   res.status(500).json({ error: 'Erro interno do servidor' });
 });

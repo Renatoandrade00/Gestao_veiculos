@@ -1,11 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import api from '../services/api';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
+import { getProfile, loginRequest, registerRequest } from '../services/vehiclesApi';
+import type { User } from '../types';
 
 interface AuthContextType {
   user: User | null;
@@ -22,33 +17,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadUser = async () => {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const response = await api.get('/auth/profile');
-          setUser(response.data);
-        } catch (error) {
-          console.error('Erro ao carregar perfil do token:', error);
-          logout();
+          const profile = await getProfile();
+          if (!cancelled) setUser(profile);
+        } catch {
+          // Token inválido/expirado — o interceptor 401 já limpa o localStorage
+          if (!cancelled) localStorage.removeItem('token');
         }
       }
-      setLoading(false);
+      if (!cancelled) setLoading(false);
     };
 
     loadUser();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
-    const response = await api.post('/auth/login', { email, password });
-    const { token, user: userData } = response.data;
+    const { token, user: userData } = await loginRequest(email, password);
     localStorage.setItem('token', token);
     setUser(userData);
   };
 
   const register = async (name: string, email: string, password: string) => {
-    const response = await api.post('/auth/register', { name, email, password });
-    const { token, user: userData } = response.data;
+    const { token, user: userData } = await registerRequest(name, email, password);
     localStorage.setItem('token', token);
     setUser(userData);
   };
